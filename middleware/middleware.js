@@ -4,10 +4,17 @@ module.exports = {
     try {
       if (req.headers && req.headers.authorization) {
         const token = req.headers.authorization.split(" ")[1];
-        const decoded = jsonwebtoken.verify(token, process.env.JWT_KEY);
-        req.user_data = decoded;
-        // apakah akun verified dengan cari di data
-        next();
+        try {
+          const decoded = jsonwebtoken.verify(token, process.env.JWT_KEY);
+          req.user_data = decoded;
+          next();
+        } catch {
+          return res.status(401).json({
+            status: 401,
+            message: "Authentication failed, jwt invalid.",
+            data: null,
+          });
+        }
       } else {
         return res.status(401).json({
           status: 401,
@@ -15,6 +22,7 @@ module.exports = {
           data: null,
         });
       }
+      /* c8 ignore start */
     } catch (error) {
       // console.log(error);
       return res.status(500).json({

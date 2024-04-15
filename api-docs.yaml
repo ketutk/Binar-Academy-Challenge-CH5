@@ -1,0 +1,959 @@
+openapi: 3.0.1
+
+info:
+  title: Binar Challenge Chapter 5
+  description: An api created for Binar Course Challenge
+  termsOfService: https://example.com/terms/
+  contact:
+    name: I Ketut Krisna Kertajayaa
+    url: https://www.github.com/ketutk
+    email: ketutkrisnakertajaya@gmail.com
+  version: 1.0.1
+servers:
+  - url: http://localhost:5555/api/v1
+
+paths:
+  /auth/register:
+    post:
+      summary: register new user
+      description: Mendaftarkan user baru kedalam database
+      tags:
+        - Auth
+
+      requestBody:
+        content:
+          "application/json":
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/User"
+                - type: object
+                  properties:
+                    identity_type:
+                      type: string
+                      example: KTP
+                    identity_number:
+                      type: string
+                      example: 3600234659798
+                    address:
+                      type: string
+                      example: Bonang
+
+      responses:
+        201:
+          description: success
+          content:
+            "application/json":
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: number
+                    example: 201
+                  message:
+                    type: string
+                    example: Successfully register
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        allOf:
+                          - $ref: "#/components/schemas/Id"
+                          - $ref: "#/components/schemas/User"
+                          - type: object
+                            properties:
+                              profile:
+                                allOf:
+                                  - $ref: "#/components/schemas/Id"
+                                  - $ref: "#/components/schemas/Profile"
+                      token:
+                        type: string
+                        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjgxOTk0ODczLThjNjAtNGJlNy1hYmY0LTg5MzQwZTdhYjUyOSIsIm5hbWUiOiJLZXR1dCIsImVtYWlsIjoia2V0dXRAZ21haWwuY29tIiwiaWF0IjoxNzEyMTU4MDI3LCJleHAiOjE3MTIyNDQ0Mjd9.ZhUvsLKlet6N9FQ4enx7REfSjuprT385sFUyXWfvWqk
+
+        400:
+          description: failed because required field missing / email not valid
+          content:
+            "application/json":
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: number
+                    example: 400
+                  message:
+                    anyOf:
+                      - type: array
+                        items:
+                          type: object
+                          properties:
+                            message:
+                              type: string
+                              example: Address can not be empty!
+                            path:
+                              type: array
+                              items:
+                                type: string
+                                example: address
+                            type:
+                              type: string
+                              example: any.required
+                            context:
+                              type: object
+                              properties:
+                                label:
+                                  type: string
+                                  example: address
+                                key:
+                                  type: string
+                                  example: address
+                      - type: string
+                        example: Please input valid email
+                  data:
+                    type: object
+                    example: null
+
+        403:
+          description: failed because email already used
+          content:
+            "application/json":
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: number
+                    example: 403
+                  message:
+                    type: string
+                    example: This email is already used
+                  data:
+                    type: object
+                    example: null
+        500:
+          $ref: "#/components/responses/500UnexpectedError"
+  /auth/login:
+    post:
+      summary: login user
+      description: Login kedalam aplikasi dan mendapatkan token
+      tags:
+        - Auth
+      requestBody:
+        content:
+          "application/json":
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: guntur@gmail.com
+                password:
+                  type: string
+                  example: guntur123
+      responses:
+        200:
+          description: Successfully
+          content:
+            "application/json":
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: number
+                    example: 200
+                  message:
+                    type: string
+                    example: Successfully login
+                  data:
+                    type: object
+                    properties:
+                      token:
+                        type: string
+                        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjgxOTk0ODczLThjNjAtNGJlNy1hYmY0LTg5MzQwZTdhYjUyOSIsIm5hbWUiOiJLZXR1dCIsImVtYWlsIjoia2V0dXRAZ21haWwuY29tIiwiaWF0IjoxNzEyMTU4MDI3LCJleHAiOjE3MTIyNDQ0Mjd9.ZhUvsLKlet6N9FQ4enx7REfSjuprT385sFUyXWfvWqk
+        400:
+          $ref: "#/components/responses/400MissingField"
+        403:
+          description: failed when email or password is wrong
+          content:
+            "application/json":
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: number
+                    example: 403
+                  message:
+                    type: string
+                    example: Incorrect email or password
+                  data:
+                    type: object
+                    example: null
+        500:
+          $ref: "#/components/responses/500UnexpectedError"
+  /auth/authenticate:
+    post:
+      summary: authenticate user
+      description: Mengautentikasi user menggunakan token
+      tags:
+        - Auth
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: success
+          content:
+            "application/json":
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: number
+                    example: 200
+                  message:
+                    type: string
+                    example: Authentication success
+                  data:
+                    allOf:
+                      - $ref: "#/components/schemas/Id"
+                      - type: object
+                        properties:
+                          name:
+                            type: string
+                            example: guntur
+                          email:
+                            type: string
+                            example: guntur@gmail.com
+                          iat:
+                            type: number
+                            example: 1712967373
+                          exp:
+                            type: number
+                            example: 1713053773
+        401:
+          $ref: "#/components/responses/401AuthFailed"
+        500:
+          $ref: "#/components/responses/500UnexpectedError"
+  /users:
+    get:
+      summary: get users data
+      description: Mendapatkan data semua users
+      tags:
+        - Users
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+          description: The number of pages to show users data
+      responses:
+        200:
+          description: success
+          content:
+            "application/json":
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: number
+                    example: 200
+                  message:
+                    type: string
+                    example: Successfully get users data
+                  data:
+                    type: object
+                    properties:
+                      users:
+                        type: array
+                        items:
+                          allOf:
+                            - $ref: "#/components/schemas/Id"
+                            - $ref: "#/components/schemas/User"
+                      current_page:
+                        type: number
+                        example: 1
+                      total_page:
+                        type: number
+                        example: 1
+        400:
+          $ref: "#/components/responses/400GetWithPagination"
+        500:
+          $ref: "#/components/responses/500UnexpectedError"
+  /users/{id}:
+    get:
+      summary: get users data by id
+      description: Mendapatkan data user berdasarkan id
+      tags:
+        - Users
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          description: Id of users data
+          required: true
+      responses:
+        200:
+          description: success
+          content:
+            "application/json":
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: number
+                    example: 200
+                  message:
+                    type: string
+                    example: Successfuly get user data
+                  data:
+                    allOf:
+                      - $ref: "#/components/schemas/Id"
+                      - $ref: "#/components/schemas/User"
+                      - type: object
+                        properties:
+                          profile:
+                            allOf:
+                              - $ref: "#/components/schemas/Id"
+                              - $ref: "#/components/schemas/Profile"
+
+        404:
+          description: User not found
+          content:
+            "application/json":
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: number
+                    example: 404
+                  message:
+                    type: string
+                    example: User not found
+                  data:
+                    type: object
+                    example: null
+        500:
+          $ref: "#/components/responses/500UnexpectedError"
+  /accounts:
+    post:
+      summary: create account
+      description: User dapat membuat akun
+      tags:
+        - Accounts
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          "application/json":
+            schema:
+              type: object
+              properties:
+                bank_name:
+                  type: string
+                  example: Bank Central Asia
+                bank_account_number:
+                  type: string
+                  example: 85699795649
+                balance:
+                  type: integer
+                  example: 900000
+      responses:
+        201:
+          description: success
+          content:
+            "application/json":
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: number
+                    example: 201
+                  message:
+                    type: string
+                    example: Successfully create an account
+                  data:
+                    type: object
+                    properties:
+                      accounts:
+                        allOf:
+                          - $ref: "#/components/schemas/Id"
+                          - $ref: "#/components/schemas/Account"
+        400:
+          $ref: "#/components/responses/400MissingField"
+        401:
+          $ref: "#/components/responses/401AuthFailed"
+        500:
+          $ref: "#/components/responses/500UnexpectedError"
+    get:
+      summary: get all accounts
+      description: Mendapatkan semua akun yang telah dibuat
+      tags:
+        - Accounts
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+          description: The number of pages to show accounts data
+      responses:
+        200:
+          description: success
+          content:
+            "application/json":
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: number
+                    example: 200
+                  message:
+                    type: string
+                    example: Successfully get accounts data
+                  data:
+                    type: object
+                    properties:
+                      accounts:
+                        type: array
+                        items:
+                          allOf:
+                            - $ref: "#/components/schemas/Id"
+                            - $ref: "#/components/schemas/Account"
+                      current_page:
+                        type: number
+                        example: 1
+                      total_page:
+                        type: number
+                        example: 1
+        400:
+          $ref: "#/components/responses/400GetWithPagination"
+        500:
+          $ref: "#/components/responses/500UnexpectedError"
+  /accounts/my:
+    get:
+      summary: get all current user's accounts data
+      description: User dapat melihat akun yang telah dibuatnya
+      tags:
+        - Accounts
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: success
+          content:
+            "application/json":
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: number
+                    example: 200
+                  message:
+                    type: string
+                    example: Successfully get accounts data
+                  data:
+                    type: object
+                    properties:
+                      accounts:
+                        type: array
+                        items:
+                          allOf:
+                            - $ref: "#/components/schemas/Id"
+                            - $ref: "#/components/schemas/Account"
+        401:
+          $ref: "#/components/responses/401AuthFailed"
+        500:
+          $ref: "#/components/responses/500UnexpectedError"
+  /accounts/{id}:
+    get:
+      summary: get account data by id
+      description: Mendapatkan data satu akun berdasarkan id
+      tags:
+        - Accounts
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          description: Id of account data
+          required: true
+      responses:
+        200:
+          description: success
+          content:
+            "application/json":
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: number
+                    example: 200
+                  message:
+                    type: string
+                    example: Successfuly get account data
+                  data:
+                    allOf:
+                      - $ref: "#/components/schemas/Id"
+                      - $ref: "#/components/schemas/Account"
+                      - type: object
+                        properties:
+                          user:
+                            allOf:
+                              - $ref: "#/components/schemas/Id"
+                              - $ref: "#/components/schemas/User"
+                          payment_sent:
+                            type: array
+                            items:
+                              allOf:
+                                - $ref: "#/components/schemas/Id"
+                                - $ref: "#/components/schemas/Transaction"
+                          payment_received:
+                            type: array
+                            items:
+                              allOf:
+                                - $ref: "#/components/schemas/Id"
+                                - $ref: "#/components/schemas/Transaction"
+        401:
+          $ref: "#/components/responses/401AuthFailed"
+        404:
+          description: Account not found
+          content:
+            "application/json":
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: number
+                    example: 404
+                  message:
+                    type: string
+                    example: Account not found
+                  data:
+                    type: object
+                    example: null
+        500:
+          $ref: "#/components/responses/500UnexpectedError"
+
+  /transactions:
+    post:
+      summary: create transactions
+      description: User dapat melakukan transaksi
+      tags:
+        - Transactions
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          "application/json":
+            schema:
+              type: object
+              properties:
+                source_account_id:
+                  type: string
+                  example: asi12-asd413-141324s
+                destination_account_id:
+                  type: string
+                  example: wqk12-asd413-1413st4
+                amount:
+                  type: integer
+                  example: 900000
+      responses:
+        201:
+          description: success
+          content:
+            "application/json":
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: number
+                    example: 201
+                  message:
+                    type: string
+                    example: Transaction success
+                  data:
+                    type: object
+                    properties:
+                      transaction_response:
+                        allOf:
+                          - $ref: "#/components/schemas/Id"
+                          - $ref: "#/components/schemas/Transaction"
+                      your_account_status:
+                        allOf:
+                          - $ref: "#/components/schemas/Id"
+                          - $ref: "#/components/schemas/Account"
+        400:
+          $ref: "#/components/responses/400MissingField"
+        401:
+          $ref: "#/components/responses/401AuthFailed"
+        403:
+          description: not enough balance to proceed transaction
+          content:
+            "application/json":
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: number
+                    example: 403
+                  message:
+                    type: string
+                    example: Not enough balance to proceed transactions
+                  data:
+                    type: object
+                    example: null
+        404:
+          description: source/destination account not found
+          content:
+            "application/json":
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: number
+                    example: 404
+                  message:
+                    anyOf:
+                      - type: string
+                        example: Destination Account not found
+                      - type: string
+                        example: Source Account not found
+
+                  data:
+                    type: object
+                    example: null
+        500:
+          $ref: "#/components/responses/500UnexpectedError"
+    get:
+      summary: get all transactions
+      description: Mendapatkan semua transaksi yang telah dibuat
+      tags:
+        - Transactions
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+          description: The number of pages to show transactions data
+      responses:
+        200:
+          description: success
+          content:
+            "application/json":
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: number
+                    example: 200
+                  message:
+                    type: string
+                    example: Successfully get transactions data
+                  data:
+                    type: object
+                    properties:
+                      transactions:
+                        type: array
+                        items:
+                          allOf:
+                            - $ref: "#/components/schemas/Id"
+                            - $ref: "#/components/schemas/Transaction"
+                      current_page:
+                        type: number
+                        example: 1
+                      total_page:
+                        type: number
+                        example: 1
+        400:
+          $ref: "#/components/responses/400GetWithPagination"
+        500:
+          $ref: "#/components/responses/500UnexpectedError"
+  /transactions/my:
+    get:
+      summary: get all current user's transactions
+      description: mendapatkan semua data transaksi pribadi user
+      tags:
+        - Transactions
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: success
+          content:
+            "application/json":
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: number
+                    example: 200
+                  message:
+                    type: string
+                    example: Successfully get transactions data
+                  data:
+                    type: object
+                    properties:
+                      transactions:
+                        type: array
+                        items:
+                          allOf:
+                            - $ref: "#/components/schemas/Id"
+                            - $ref: "#/components/schemas/Transaction"
+                            - type: object
+                              properties:
+                                source_account:
+                                  allOf:
+                                    - $ref: "#/components/schemas/Id"
+                                    - $ref: "#/components/schemas/Account"
+                                destination_account:
+                                  allOf:
+                                    - $ref: "#/components/schemas/Id"
+                                    - $ref: "#/components/schemas/Account"
+        401:
+          $ref: "#/components/responses/401AuthFailed"
+        500:
+          $ref: "#/components/responses/500UnexpectedError"
+  /transactions/{id}:
+    get:
+      summary: get transaction data by id
+      description: Mendapatkan data satu transaksi berdasarkan id
+      tags:
+        - Transactions
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          description: Id of transaction data
+          required: true
+      responses:
+        200:
+          description: success
+          content:
+            "application/json":
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: number
+                    example: 200
+                  message:
+                    type: string
+                    example: Successfuly get transaction data
+                  data:
+                    type: object
+                    properties:
+                      transactions:
+                        allOf:
+                          - $ref: "#/components/schemas/Id"
+                          - $ref: "#/components/schemas/Transaction"
+                          - type: object
+                            properties:
+                              source_account:
+                                allOf:
+                                  - $ref: "#/components/schemas/Id"
+                                  - $ref: "#/components/schemas/Account"
+                                  - type: object
+                                    properties:
+                                      user:
+                                        allOf:
+                                          - $ref: "#/components/schemas/Id"
+                                          - $ref: "#/components/schemas/User"
+                              destination_account:
+                                allOf:
+                                  - $ref: "#/components/schemas/Id"
+                                  - $ref: "#/components/schemas/Account"
+                                  - type: object
+                                    properties:
+                                      user:
+                                        allOf:
+                                          - $ref: "#/components/schemas/Id"
+                                          - $ref: "#/components/schemas/User"
+
+        404:
+          description: Transaction not found
+          content:
+            "application/json":
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: number
+                    example: 404
+                  message:
+                    type: string
+                    example: Transaction not found
+                  data:
+                    type: object
+                    example: null
+        500:
+          $ref: "#/components/responses/500UnexpectedError"
+components:
+  schemas:
+    Id:
+      type: object
+      properties:
+        id:
+          type: string
+          example: asi12-asd413-141324s
+    User:
+      type: object
+      properties:
+        name:
+          type: string
+          example: guntur
+        email:
+          type: string
+          example: guntur@gmail.com
+        password:
+          type: string
+          example: guntur123
+    Account:
+      type: object
+      properties:
+        user_id:
+          type: string
+          example: asi12-asd413-141324s
+        bank_name:
+          type: string
+          example: Bank Central Asia
+        bank_account_number:
+          type: string
+          example: 85699795649
+        balance:
+          type: integer
+          example: 900000
+    Profile:
+      type: object
+      properties:
+        user_id:
+          type: string
+          example: asi12-asd413-141324s
+        identity_type:
+          type: string
+          example: KTP
+        identity_number:
+          type: string
+          example: 3600234659798
+        address:
+          type: string
+          example: Bonang
+    Transaction:
+      type: object
+      properties:
+        source_account_id:
+          type: string
+          example: asi12-asd413-141324s
+        destination_account_id:
+          type: string
+          example: asi12-asd413-141324s
+        ammount:
+          type: integer
+          example: 50000
+        createdAt:
+          type: string
+          example: 2024-04-15T13:45:17.692Z
+        updatedAt:
+          type: string
+          example: 2024-04-15T13:45:17.692Z
+  responses:
+    400MissingField:
+      description: Missing field
+      content:
+        "application/json":
+          schema:
+            type: object
+            properties:
+              status:
+                type: number
+                example: 400
+              message:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    message:
+                      type: string
+                      example: Address can not be empty!
+                    path:
+                      type: array
+                      items:
+                        type: string
+                        example: address
+                    type:
+                      type: string
+                      example: any.required
+                    context:
+                      type: object
+                      properties:
+                        label:
+                          type: string
+                          example: address
+                        key:
+                          type: string
+                          example: address
+              data:
+                type: object
+                example: null
+    400GetWithPagination:
+      description: Error get data whether page query value exceeded / no data created / incorrect query value
+      content:
+        "application/json":
+          schema:
+            type: object
+            properties:
+              status:
+                type: number
+                example: 400
+              message:
+                anyOf:
+                  - type: string
+                    example: Page exceeded total page
+                  - type: string
+                    example: No users created yet
+                  - type: string
+                    example: No accounts created yet
+                  - type: string
+                    example: No transactions created yet
+                  - type: string
+                    example: Incorrect query value
+              data:
+                type: object
+                example: null
+    401AuthFailed:
+      description: Error 401 for failed Authentication whether not logged in or jwt token is invalid
+      content:
+        "application/json":
+          schema:
+            type: object
+            properties:
+              status:
+                type: number
+                example: 401
+              message:
+                anyOf:
+                  - type: string
+                    example: Authentication failed, jwt invalid.
+                  - type: string
+                    example: Authentication failed, please login.
+              data:
+                type: object
+                example: null
+    500UnexpectedError:
+      description: Error 500 for any unexpected error
+      content:
+        "application/json":
+          schema:
+            type: object
+            properties:
+              status:
+                type: number
+                example: 500
+              message:
+                type: string
+                example: error message here
+              data:
+                type: object
+                example: null
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

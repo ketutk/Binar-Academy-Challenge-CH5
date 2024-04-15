@@ -149,15 +149,15 @@ exports.authTests = (app) => {
         throw error;
       }
     });
-    test("return status:404 with body {status:404,message:'Incorrect email or password',data:null} when email is not found", async () => {
+    test("return status:404 with body {status:403,message:'Incorrect email or password',data:null} when email is not found", async () => {
       try {
         const responseLogin = await request(app).post(`${mainRoute}/auth/login`).send({
           email: "ketut1234@gmail.com",
           password: "ketut123",
         });
-        expect(responseLogin.statusCode).toBe(404);
+        expect(responseLogin.statusCode).toBe(403);
         expect(responseLogin.body).toEqual({
-          status: 404,
+          status: 403,
           message: "Incorrect email or password",
           data: null,
         });
@@ -219,14 +219,15 @@ exports.authTests = (app) => {
         throw error;
       }
     });
-    test("return status:500 with body {status:500,message:{error message},data:null} when jwt not found/expired or any unexpected error", async () => {
+    test("return status:401 with body {status:401,message:'Authentication failed, jwt invalid.',data:null} when jwt not found/expired", async () => {
       try {
         const authenticateResponse = await request(app).post(`${mainRoute}/auth/authenticate`).set({ Authorization: `asda` }); //JWT NGASAL
-        expect(authenticateResponse.statusCode).toBe(500);
-        expect(authenticateResponse.body).toHaveProperty("status");
-        expect(authenticateResponse.body).toHaveProperty("message");
-        expect(authenticateResponse.body).toHaveProperty("data");
-        expect(authenticateResponse.body.data).toEqual(null);
+        expect(authenticateResponse.statusCode).toBe(401);
+        expect(authenticateResponse.body).toEqual({
+          status: 401,
+          message: "Authentication failed, jwt invalid.",
+          data: null,
+        });
       } catch (error) {
         throw error;
       }

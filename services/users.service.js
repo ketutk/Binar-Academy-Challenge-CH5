@@ -24,7 +24,7 @@ exports.getUsers = async (req) => {
       };
     }
 
-    if (page > totalPage) {
+    if (+page > totalPage) {
       return {
         status: 400,
         message: "Page exceeded total page",
@@ -33,7 +33,7 @@ exports.getUsers = async (req) => {
     }
 
     const usersData = await prisma.users.findMany({
-      skip: (page - 1) * limit,
+      skip: (+page - 1) * limit,
       take: limit,
     });
 
@@ -42,7 +42,7 @@ exports.getUsers = async (req) => {
       message: "Successfully get users data",
       data: {
         users: usersData,
-        current_page: page,
+        current_page: +page,
         total_page: totalPage,
       },
     };

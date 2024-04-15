@@ -105,7 +105,7 @@ exports.getTransactions = async (req) => {
       };
     }
 
-    if (page > totalPage) {
+    if (+page > totalPage) {
       return {
         status: 400,
         message: "Page exceeded total page",
@@ -114,7 +114,7 @@ exports.getTransactions = async (req) => {
     }
 
     const transactionsData = await prisma.transactions.findMany({
-      skip: (page - 1) * limit,
+      skip: (+page - 1) * limit,
       take: limit,
     });
 
@@ -123,7 +123,7 @@ exports.getTransactions = async (req) => {
       message: "Sucessfuly get transactions data",
       data: {
         transactions: transactionsData,
-        current_page: page,
+        current_page: +page,
         total_page: totalPage,
       },
     };

@@ -85,7 +85,7 @@ exports.loginUser = async (req) => {
     // Return jika tidak ada
     if (!user) {
       return {
-        status: 404,
+        status: 403,
         message: "Incorrect email or password",
         data: null,
       };
@@ -131,12 +131,20 @@ exports.authenticate = async (req) => {
   try {
     if (req.headers && req.headers.authorization) {
       const token = req.headers.authorization.split(" ")[1];
-      const decoded = jsonwebtoken.verify(token, process.env.JWT_KEY);
-      return {
-        status: 200,
-        message: "Authentication success",
-        data: decoded,
-      };
+      try {
+        const decoded = jsonwebtoken.verify(token, process.env.JWT_KEY);
+        return {
+          status: 200,
+          message: "Authentication success",
+          data: decoded,
+        };
+      } catch (err) {
+        return {
+          status: 401,
+          message: "Authentication failed, jwt invalid.",
+          data: null,
+        };
+      }
     } else {
       return {
         status: 401,

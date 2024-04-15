@@ -58,14 +58,15 @@ exports.middlewareTests = (app) => {
         throw error;
       }
     });
-    test("return status:500 with body {status:500,message:{error message},data:null} when jwt not found/expired or any unexpected error", async () => {
+    test("return status:401 with body {status:401,message:{error message},data:null} when jwt not found/expired or any unexpected error", async () => {
       try {
         const response = await request(app).get(`${mainRoute}/accounts/my`).set({ Authorization: `Bearer asda` }); //JWT NGASAL
-        expect(response.statusCode).toBe(500);
-        expect(response.body).toHaveProperty("status");
-        expect(response.body).toHaveProperty("message");
-        expect(response.body).toHaveProperty("data");
-        expect(response.body.data).toEqual(null);
+        expect(response.statusCode).toBe(401);
+        expect(response.body).toEqual({
+          status: 401,
+          message: "Authentication failed, jwt invalid.",
+          data: null,
+        });
       } catch (error) {
         throw error;
       }

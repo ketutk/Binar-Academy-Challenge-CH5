@@ -135,7 +135,7 @@ exports.transactionsTests = (app) => {
       await prisma.users.deleteMany({});
       //   console.log("after all : hapus");
     });
-    test("return status:200 with body {status:200,message:'Sucessfuly get transactions data',data:{accounts,current_page,total_page}}", async () => {
+    test("return status:200 with body {status:200,message:'Sucessfuly get transactions data',data:{transactions,current_page,total_page}}", async () => {
       try {
         const response = await request(app).get(`${mainRoute}/transactions`);
 
