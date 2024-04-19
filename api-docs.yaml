@@ -28,6 +28,9 @@ paths:
                 - $ref: "#/components/schemas/User"
                 - type: object
                   properties:
+                    password:
+                      type: string
+                      example: guntur123
                     identity_type:
                       type: string
                       example: KTP
