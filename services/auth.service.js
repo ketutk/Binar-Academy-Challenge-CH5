@@ -55,7 +55,7 @@ exports.registerUser = async (req) => {
         expiresIn: process.env.TIMEEXPIRES,
       }
     );
-
+    delete createUser.password;
     // Return
     return {
       status: 201,

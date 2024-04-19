@@ -35,6 +35,11 @@ exports.getUsers = async (req) => {
     const usersData = await prisma.users.findMany({
       skip: (+page - 1) * limit,
       take: limit,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+      },
     });
 
     return {
@@ -71,7 +76,7 @@ exports.getUserById = async (req) => {
         data: null,
       };
     }
-
+    delete userData.password;
     return {
       status: 200,
       message: "Successfully get user data",

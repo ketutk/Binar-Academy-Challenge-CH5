@@ -177,12 +177,24 @@ exports.getTransactionById = async (req) => {
       include: {
         source_account: {
           include: {
-            user: true,
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
           },
         },
         destination_account: {
           include: {
-            user: true,
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
           },
         },
       },

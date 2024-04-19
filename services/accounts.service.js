@@ -104,7 +104,13 @@ exports.getAccountById = async (req) => {
         id: accountId,
       },
       include: {
-        user: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
         payment_sent: true,
         payment_received: true,
       },

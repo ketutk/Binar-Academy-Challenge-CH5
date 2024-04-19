@@ -801,9 +801,6 @@ components:
         email:
           type: string
           example: guntur@gmail.com
-        password:
-          type: string
-          example: guntur123
     Account:
       type: object
       properties:
